@@ -26,5 +26,7 @@ data class News(
     @ColumnInfo
     var news_date_uts: String?,
     @ColumnInfo
-    var mobile_url: String?
+    var mobile_url: String?,
+    @ColumnInfo
+    var hide_news: Boolean = false
 ): Parcelable

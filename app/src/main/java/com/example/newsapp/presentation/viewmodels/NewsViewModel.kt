@@ -5,8 +5,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.newsapp.domain.models.News
+import com.example.newsapp.domain.usecase.DeleteNewsUseCase
 import com.example.newsapp.domain.usecase.GetNewsUseCase
 import com.example.newsapp.domain.usecase.SaveNewsUseCase
+import com.example.newsapp.domain.usecase.SetVisibleNewsUseCase
 import com.example.newsapp.network.Common
 import kotlinx.coroutines.*
 
@@ -25,17 +27,18 @@ sealed class GetNewsStateFromDB {
 
 class NewsViewModel(
     private val getNewsUseCase: GetNewsUseCase,
-    private val saveNewsUseCase: SaveNewsUseCase
+    private val saveNewsUseCase: SaveNewsUseCase,
+    private val deleteNewsUseCase: DeleteNewsUseCase,
+    private val setVisibleNewsUseCase: SetVisibleNewsUseCase
 ): ViewModel() {
     private val newsLiveMutable = MutableLiveData<GetNewsStateFromDB>()
     private val newsLoadingLiveMutable = MutableLiveData<LoadingNewsState>(LoadingNewsState.DefaultState)
     val resultGetNewsFromDB: LiveData<GetNewsStateFromDB> = newsLiveMutable
     val resultLoadingNews: LiveData<LoadingNewsState> = newsLoadingLiveMutable
 
-    fun getNews(){
+    fun getNews(modeHideNews: Boolean){
         viewModelScope.launch(Dispatchers.IO) {
-            delay(1500)
-            val news = getNewsUseCase.execute()
+            val news = getNewsUseCase.execute(modeHideNews)
             launch(Dispatchers.Main) {
                 if (news.isNullOrEmpty()) {
                     newsLiveMutable.value = GetNewsStateFromDB.NewsEmptyState
@@ -49,6 +52,24 @@ class NewsViewModel(
     fun saveNews(news: List<News>) {
         viewModelScope.launch(Dispatchers.IO) {
             saveNewsUseCase.execute(news = news)
+        }
+    }
+
+    fun deleteNews(news: News, onSuccess: () -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            deleteNewsUseCase.execute(news, onSuccess = onSuccess)
+            viewModelScope.launch(Dispatchers.Main) {
+                onSuccess()
+            }
+        }
+    }
+
+    fun setVisibleNews(news: News, onSuccess: () -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            setVisibleNewsUseCase.execute(news = news, onSuccess = onSuccess)
+            viewModelScope.launch(Dispatchers.Main) {
+                onSuccess()
+            }
         }
     }
 
