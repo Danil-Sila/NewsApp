@@ -5,15 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.newsapp.data.database.NewsDataBase
 import com.example.newsapp.data.repository.NewsRepositoryImpl
-import com.example.newsapp.domain.usecase.DeleteNewsUseCase
-import com.example.newsapp.domain.usecase.GetNewsUseCase
-import com.example.newsapp.domain.usecase.SaveNewsUseCase
-import com.example.newsapp.domain.usecase.SetVisibleNewsUseCase
+import com.example.newsapp.domain.usecase.*
 
 class NewsViewModelFactory(context: Context): ViewModelProvider.Factory {
 
     private val newsRepository by lazy(LazyThreadSafetyMode.NONE) {
-        val daoNews = NewsDataBase.getInstance(context).getNewsDao()
+        val daoNews = NewsDataBase.getInstance(context)
         NewsRepositoryImpl(daoNews)
     }
 
@@ -33,12 +30,17 @@ class NewsViewModelFactory(context: Context): ViewModelProvider.Factory {
         SetVisibleNewsUseCase(newsRepository = newsRepository)
     }
 
+    private val getNewsFromService by lazy ( LazyThreadSafetyMode.NONE ) {
+        GetNewsFromServiceUseCase(newsRepository = newsRepository)
+    }
+
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return NewsViewModel(
             getNewsUseCase = getNewsUseCase,
             saveNewsUseCase = saveNewsUseCase,
             deleteNewsUseCase = deleteNewsUseCase,
-            setVisibleNewsUseCase = setVisibleNewsUseCase
+            setVisibleNewsUseCase = setVisibleNewsUseCase,
+            getNewsFromService = getNewsFromService
         ) as T
     }
 

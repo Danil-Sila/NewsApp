@@ -8,12 +8,12 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.newsapp.R
-import com.example.newsapp.data.adapter.NewsAdapter
-import com.example.newsapp.data.adapter.NewsListListener
+import com.example.newsapp.data.database.models.News
 import com.example.newsapp.databinding.FragmentNewsListBinding
-import com.example.newsapp.domain.models.News
-import com.example.newsapp.presentation.viewmodels.GetNewsStateFromDB
-import com.example.newsapp.presentation.viewmodels.LoadingNewsState
+import com.example.newsapp.presentation.adapter.NewsAdapter
+import com.example.newsapp.presentation.adapter.NewsListListener
+import com.example.newsapp.presentation.viewmodels.NewsDatabaseState
+import com.example.newsapp.presentation.viewmodels.LoadingNewsServiceState
 import com.example.newsapp.presentation.viewmodels.NewsViewModel
 import com.example.newsapp.presentation.viewmodels.NewsViewModelFactory
 
@@ -45,39 +45,41 @@ class NewsListFragment : Fragment(), NewsListListener, OnQueryTextListener {
 
         vm.resultGetNewsFromDB.observe(requireActivity()) { state ->
             when(state) {
-                is GetNewsStateFromDB.NewsGetState -> {
+                is NewsDatabaseState.NewsGetState -> {
                     binding.progressBar.visibility = View.GONE
                     adapter.setNewsList(state.news)
                     setDefaultScreen()
                 }
-                GetNewsStateFromDB.NewsEmptyState -> {
+                NewsDatabaseState.NewsEmptyState -> {
                     binding.progressBar.visibility = View.GONE
                     binding.newsLayout.visibility = View.GONE
                     binding.emptyNewsLayout.visibility = View.VISIBLE
+                }
+                NewsDatabaseState.NewsSaveState -> {
+                    vm.getNews(modeHideNews = newsHideMode)
                 }
             }
         }
 
         vm.resultLoadingNews.observe(requireActivity()) { state ->
             when(state) {
-                LoadingNewsState.DefaultState -> {
+                LoadingNewsServiceState.DefaultState -> {
                     binding.progressBar.visibility = View.GONE
                     setDefaultScreen()
                 }
-                is LoadingNewsState.ErrorState -> {
+                is LoadingNewsServiceState.ErrorState -> {
                     binding.progressBar.visibility = View.GONE
                     Toast.makeText(activity, state.message, Toast.LENGTH_LONG ).show()
                 }
-                is LoadingNewsState.NewsEmptyState -> {
+                is LoadingNewsServiceState.NewsEmptyState -> {
                     binding.progressBar.visibility = View.GONE
                     Toast.makeText(activity, "Получен пустой список новостей!", Toast.LENGTH_LONG ).show()
                 }
-                is LoadingNewsState.NewsSucceedState -> {
+                is LoadingNewsServiceState.NewsSucceedState -> {
                     setDefaultScreen()
                     vm.saveNews(state.news)
-                    vm.getNews(modeHideNews = newsHideMode)
                 }
-                LoadingNewsState.SendRequestGetNews -> {
+                LoadingNewsServiceState.SendRequestGetNews -> {
                     binding.progressBar.visibility = View.VISIBLE
                     binding.newsLayout.visibility = View.GONE
                 }
@@ -92,6 +94,7 @@ class NewsListFragment : Fragment(), NewsListListener, OnQueryTextListener {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu, menu)
+        setNewsIcon(menu.findItem(R.id.menu_mode))
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

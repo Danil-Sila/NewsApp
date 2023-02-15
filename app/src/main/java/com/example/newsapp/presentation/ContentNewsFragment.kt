@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.example.newsapp.databinding.FragmentContentNewsBinding
-import com.example.newsapp.domain.models.News
+import com.example.newsapp.data.database.models.News
 
 class ContentNewsFragment : Fragment() {
 
