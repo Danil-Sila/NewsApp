@@ -5,21 +5,20 @@ import android.view.*
 import androidx.fragment.app.Fragment
 import android.widget.SearchView.OnQueryTextListener
 import android.widget.Toast
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.newsapp.R
 import com.example.newsapp.data.database.models.News
 import com.example.newsapp.databinding.FragmentNewsListBinding
-import com.example.newsapp.presentation.adapter.NewsAdapter
-import com.example.newsapp.presentation.adapter.NewsListListener
+import com.example.newsapp.adapter.NewsAdapter
+import com.example.newsapp.adapter.NewsListListener
 import com.example.newsapp.presentation.viewmodels.NewsDatabaseState
 import com.example.newsapp.presentation.viewmodels.LoadingNewsServiceState
 import com.example.newsapp.presentation.viewmodels.NewsViewModel
-import com.example.newsapp.presentation.viewmodels.NewsViewModelFactory
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class NewsListFragment : Fragment(), NewsListListener, OnQueryTextListener {
 
-    private lateinit var vm: NewsViewModel
+    private val vm by viewModel<NewsViewModel> ()
     private var _binding: FragmentNewsListBinding? = null
     private val binding get() = _binding!!
     lateinit var adapter: NewsAdapter
@@ -35,8 +34,6 @@ class NewsListFragment : Fragment(), NewsListListener, OnQueryTextListener {
         savedInstanceState: Bundle?
     ): View? {
         _binding = FragmentNewsListBinding.inflate(inflater, container, false)
-        vm = ViewModelProvider(this, NewsViewModelFactory(requireActivity()))
-            .get(NewsViewModel::class.java)
 
         binding.refreshNews.setOnRefreshListener {
             binding.refreshNews.isRefreshing = false
@@ -69,6 +66,7 @@ class NewsListFragment : Fragment(), NewsListListener, OnQueryTextListener {
                 }
                 is LoadingNewsServiceState.ErrorState -> {
                     binding.progressBar.visibility = View.GONE
+                    setDefaultScreen()
                     Toast.makeText(activity, state.message, Toast.LENGTH_LONG ).show()
                 }
                 is LoadingNewsServiceState.NewsEmptyState -> {
